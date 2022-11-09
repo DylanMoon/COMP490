@@ -1,5 +1,6 @@
 global using GitMunnyApi.Models;
 using GitMunnyApi.Services.TransactionService;
+using GitMunnyApi.Services.UserService;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +12,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddAutoMapper(typeof(Program).Assembly);
 builder.Services.AddScoped<ITransactionService, TransactionService>();
+builder.Services.AddScoped<IUserService, UserService>();
 
 var app = builder.Build();
 

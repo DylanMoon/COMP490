@@ -17,28 +17,37 @@ namespace GitMunnyApi.Controllers
             _transactionService = transactionService;
         }
         
-        [HttpGet()]
-        public async Task<ActionResult<ServiceResponse<List<TransactionDto>>>> Get(
+        [HttpGet]
+        public async Task<ActionResult<ServiceResponse<IEnumerable<TransactionDto>>>> Get(
             [FromQuery] Guid? id,
             [FromQuery] DateTime? before,
             [FromQuery] DateTime? after,
             [FromQuery] double? greaterThan,
             [FromQuery] double? lessThan,
+            [FromQuery] TransactionType? type,
             [FromQuery] string? vendor,
             [FromQuery] IEnumerable<string>? tags)
         {
             var filters = new List<IApiFilter<TransactionModel>>();
-            if(id is not null) filters.Add(new WithId(id.GetValueOrDefault()));
-            if(before is not null) filters.Add(new Before(before.GetValueOrDefault()));
-            if(after is not null) filters.Add(new After(after.GetValueOrDefault()));
-            if(greaterThan is not null) filters.Add(new GreaterThan(greaterThan.GetValueOrDefault()));
-            if(lessThan is not null) filters.Add(new LessThan(lessThan.GetValueOrDefault()));
-            if(tags is not null) filters.Add(new IncludesTags(tags));
+            if(id is not null) filters.Add(new TransactionHasId(id.GetValueOrDefault()));
+            if(before is not null) filters.Add(new TransactionBefore(before.GetValueOrDefault()));
+            if(after is not null) filters.Add(new TransactionAfter(after.GetValueOrDefault()));
+            if(greaterThan is not null) filters.Add(new TransactionGreaterThan(greaterThan.GetValueOrDefault()));
+            if(lessThan is not null) filters.Add(new TransactionLessThan(lessThan.GetValueOrDefault()));
+            if(type is not null) filters.Add(new TransactionIsType(type.GetValueOrDefault()));
+            if (vendor is not null) filters.Add(new TransactionFromVendor(vendor));
+            if(tags is not null) filters.Add(new TransactionIncludesTags(tags));
             return Ok(await _transactionService.GetTransaction(filters));
         }
 
+        [HttpGet("{id}")]
+        public async Task<ActionResult<ServiceResponse<IEnumerable<TransactionDto>>>> GetById([FromRoute] Guid id)
+        {
+            return Ok(await _transactionService.GetTransaction(new List<IApiFilter<TransactionModel>>(new List<IApiFilter<TransactionModel>>(){new TransactionHasId(id)})));
+        }
+
         [HttpPost]
-        public async Task<ActionResult<ServiceResponse<List<TransactionDto>>>> AddTransaction(
+        public async Task<ActionResult<ServiceResponse<IEnumerable<TransactionDto>>>> AddTransaction(
             [FromBody] TransactionDto newTransaction)
         {
             return Ok(await _transactionService.AddTransactions(new List<TransactionDto>(){newTransaction}));

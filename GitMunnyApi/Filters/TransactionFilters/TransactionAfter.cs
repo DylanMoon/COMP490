@@ -1,8 +1,8 @@
 namespace GitMunnyApi.Filters.TransactionFilters;
 
-public class After : IApiFilter<TransactionModel>
+public class TransactionAfter : IApiFilter<TransactionModel>
 {
     private DateTime Value { get; }
     public Func<TransactionModel, bool> Filter => model => model.Date >= Value;
-    public After(DateTime value) => Value = value;
+    public TransactionAfter(DateTime value) => Value = value;
 }
