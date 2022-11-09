@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Models" />
+    <Folder Include="Filters\UserFIlters" />
     <Folder Include="Services" />
   </ItemGroup>
 

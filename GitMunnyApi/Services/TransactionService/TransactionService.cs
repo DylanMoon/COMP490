@@ -4,12 +4,13 @@ using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using GitMunnyApi.Dtos.Transactions;
+using GitMunnyApi.Filters;
 
 namespace GitMunnyApi.Services.TransactionService
 {
     public class TransactionService : ITransactionService
     {
-        private static List<Transaction> _transactions { get; set; } = new List<Transaction>{};
+        private static List<TransactionModel> _transactions { get; set; } = new List<TransactionModel>{};//replaced by the database
         private readonly IMapper _mapper;
 
         public TransactionService(IMapper mapper)
@@ -17,32 +18,28 @@ namespace GitMunnyApi.Services.TransactionService
             _mapper = mapper;
         }
 
-        public async Task<ServiceResponse<List<GetTransactionDto>>> GetAllTransactions()
+        public async Task<ServiceResponse<IEnumerable<TransactionDto>>> GetTransaction(IEnumerable<IApiFilter<TransactionModel>> filters)
         {
-            return new ServiceResponse<List<GetTransactionDto>> {
-            Data = _transactions.Where(x=> !x.Deleted).Select(x => _mapper.Map<GetTransactionDto>(x)).ToList()
+            return new ServiceResponse<IEnumerable<TransactionDto>> {
+            Data = _transactions.Where(x=> !x.Deleted).Select(x => _mapper.Map<TransactionDto>(x)).ToList()
             };
         }
-
-        public async Task<ServiceResponse<GetTransactionDto>> GetTransactionById(int id)
+        
+        public async Task<ServiceResponse<IEnumerable<TransactionDto>>> AddTransactions(IEnumerable<TransactionDto> transactions)
         {
-            var serviceResponse = new ServiceResponse<GetTransactionDto>();
-            var character = _transactions.FirstOrDefault(x=> x.Id == id);
-            serviceResponse.Data = _mapper.Map<GetTransactionDto>(character);
-            return serviceResponse;
-        }
-
-        public async Task<ServiceResponse<List<GetTransactionDto>>> AddTransaction(AddTransactionDto transaction)
-        {
-            var serviceResponse = new ServiceResponse<List<GetTransactionDto>>();
-            _transactions.Add(_mapper.Map<Transaction>(transaction));
-            serviceResponse.Data = _transactions.Where(x => !x.Deleted).Select(x =>_mapper.Map<GetTransactionDto>(x)).ToList();
+            var serviceResponse = new ServiceResponse<IEnumerable<TransactionDto>>();
+            foreach (var transaction in transactions)
+            {
+                _transactions.Add(_mapper.Map<TransactionModel>(transaction));
+            }
+            
+            serviceResponse.Data = _transactions.Where(x => !x.Deleted).Select(x =>_mapper.Map<TransactionDto>(x)).ToList();
             return serviceResponse;     
-        }
+        } 
 
-        public async Task<ServiceResponse<GetTransactionDto>> UpdateTransaction(UpdateTransactionDto updatedTransaction)
+        public async Task<ServiceResponse<TransactionDto>> UpdateTransaction(TransactionDto updatedTransaction)
         {
-            var serviceResponse = new ServiceResponse<GetTransactionDto>();
+            var serviceResponse = new ServiceResponse<TransactionDto>();
             var transaction = _transactions.FirstOrDefault(x => x.Id == updatedTransaction.Id);
             if (transaction is null)
             {
@@ -54,8 +51,13 @@ namespace GitMunnyApi.Services.TransactionService
             transaction.Amount = updatedTransaction.Amount;
             transaction.Note = updatedTransaction.Note;
             transaction.Vendor = updatedTransaction.Vendor;
-            serviceResponse.Data = _mapper.Map<GetTransactionDto>(transaction);
+            serviceResponse.Data = _mapper.Map<TransactionDto>(transaction);
             return serviceResponse;
+        }
+
+        public Task<ServiceResponse<IEnumerable<TransactionDto>>> DeleteTransactions(IEnumerable<TransactionDto> transactions)
+        {
+            throw new NotImplementedException();
         }
     }
 }

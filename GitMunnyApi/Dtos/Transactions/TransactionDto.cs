@@ -5,10 +5,10 @@ using System.Threading.Tasks;
 
 namespace GitMunnyApi.Dtos.Transactions
 {
-    public class GetTransactionDto
+    public class TransactionDto
     {
-        public DateTime Date { get; } = DateTime.Now;
-        public Currency Amount { get; set;}
+        public Guid Id { get; init; }
+        public double Amount { get; set;}
         public string Vendor { get; set; }
         public string Note{ get; set; }
     }

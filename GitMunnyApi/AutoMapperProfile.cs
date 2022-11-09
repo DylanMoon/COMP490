@@ -11,8 +11,8 @@ namespace GitMunnyApi
     {
         public AutoMapperProfile()
         {
-                CreateMap<Transaction, GetTransactionDto>();
-                CreateMap<Transaction, AddTransactionDto>();
+                CreateMap<TransactionDto, TransactionModel>();
+                CreateMap<TransactionModel, TransactionDto>();
         }
     }
 }
