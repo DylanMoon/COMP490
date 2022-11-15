@@ -6,7 +6,7 @@ namespace GitMunnyApi.Services.TransactionService
 {
     public class TransactionService : ITransactionService
     {
-        private static List<TransactionModel> _transactions { get; set; } = new List<TransactionModel>{};//replaced by the database
+        private List<TransactionModel> Transactions { get; set; } = new List<TransactionModel>{};//replaced by the database
         private readonly IMapper _mapper;
 
         public TransactionService(IMapper mapper)
@@ -17,43 +17,67 @@ namespace GitMunnyApi.Services.TransactionService
         public async Task<ServiceResponse<IEnumerable<TransactionDto>>> GetTransaction(IEnumerable<IApiFilter<TransactionModel>> filters)
         {
             return new ServiceResponse<IEnumerable<TransactionDto>> {
-            Data = _transactions.Where(x=> !x.Deleted).Select(x => _mapper.Map<TransactionDto>(x)).ToList()
+            Data = Transactions.Where(model => filters.All(filter=> filter.Filter.Invoke(model))).Select(x => _mapper.Map<TransactionDto>(x)).ToList()
             };
         }
         
         public async Task<ServiceResponse<IEnumerable<TransactionDto>>> AddTransactions(IEnumerable<TransactionDto> transactions)
         {
-            var serviceResponse = new ServiceResponse<IEnumerable<TransactionDto>>();
+            var serviceResponse = new ServiceResponse<IEnumerable<TransactionDto>>()
+            {
+                Data = new List<TransactionDto>()
+            };
             foreach (var transaction in transactions)
             {
-                _transactions.Add(_mapper.Map<TransactionModel>(transaction));
+                var current = _mapper.Map<TransactionModel>(transaction);
+                if (Transactions.Contains(current))
+                {
+                    ((List<TransactionDto>)serviceResponse.Data).Add(transaction);
+                    continue;
+                }
+                Transactions.Add(current);
             }
-            
-            serviceResponse.Data = _transactions.Where(x => !x.Deleted).Select(x =>_mapper.Map<TransactionDto>(x)).ToList();
+
+            serviceResponse.Success = ((List<TransactionDto>) serviceResponse.Data).Count == 0;
+            if (!serviceResponse.Success) serviceResponse.Message = "Unable to add all transactions";
             return serviceResponse;     
         } 
 
         public async Task<ServiceResponse<TransactionDto>> UpdateTransaction(TransactionDto updatedTransaction)
         {
             var serviceResponse = new ServiceResponse<TransactionDto>();
-            var transaction = _transactions.FirstOrDefault(x => x.Id == updatedTransaction.Id);
+            var transaction = Transactions.FirstOrDefault(x => x.Id == updatedTransaction.Id);
             if (transaction is null)
             {
                 serviceResponse.Success = false;
                 serviceResponse.Message = "Transaction not found";
                 return serviceResponse;
             }
-
-            transaction.Amount = updatedTransaction.Amount;
-            transaction.Note = updatedTransaction.Note;
-            transaction.Vendor = updatedTransaction.Vendor;
+            transaction.Update(updatedTransaction);
             serviceResponse.Data = _mapper.Map<TransactionDto>(transaction);
             return serviceResponse;
         }
 
-        public Task<ServiceResponse<IEnumerable<TransactionDto>>> DeleteTransactions(IEnumerable<TransactionDto> transactions)
+        public async Task<ServiceResponse<IEnumerable<TransactionDto>>> DeleteTransactions(IEnumerable<TransactionDto> transactions)
         {
-            throw new NotImplementedException();
+            var serviceResponse = new ServiceResponse<IEnumerable<TransactionDto>>
+            {
+                Data = new List<TransactionDto>()
+            };
+            foreach (var transaction in transactions)
+            {
+                var current = Transactions.FirstOrDefault(e => e.Id.Equals(transaction.Id));
+                if (current is null)
+                {
+                    ((List<TransactionDto>) serviceResponse.Data).Add(transaction);
+                    continue;
+                }
+                current.Deleted = true;
+            }
+
+            serviceResponse.Success = ((List<TransactionDto>) serviceResponse.Data).Count == 0;
+            if (!serviceResponse.Success) serviceResponse.Message = "Unable to delete all transactions";
+            return serviceResponse;
         }
     }
 }
