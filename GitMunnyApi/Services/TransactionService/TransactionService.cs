@@ -46,7 +46,7 @@ namespace GitMunnyApi.Services.TransactionService
         public async Task<ServiceResponse<TransactionDto>> UpdateTransaction(TransactionDto updatedTransaction)
         {
             var serviceResponse = new ServiceResponse<TransactionDto>();
-            var transaction = Transactions.FirstOrDefault(x => x.Id == updatedTransaction.Id);
+            var transaction = Transactions.FirstOrDefault(x => x.Id.Equals(updatedTransaction.Id));
             if (transaction is null)
             {
                 serviceResponse.Success = false;
