@@ -73,7 +73,7 @@ namespace GitMunnyApi.Controllers
         {
             var response = await _transactionService.DeleteTransactions(transactionsToBeDeleted);
             if (response.Success is false) return NotFound(response);
-            return Ok(response);
+            return Ok(response); 
         }
 
     }
