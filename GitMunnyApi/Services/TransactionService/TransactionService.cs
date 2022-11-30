@@ -6,7 +6,7 @@ namespace GitMunnyApi.Services.TransactionService
 {
     public class TransactionService : ITransactionService
     {
-        private List<TransactionModel> Transactions { get; set; } = new List<TransactionModel>{};//replaced by the database
+        private static List<TransactionModel> Transactions { get; set; } = new List<TransactionModel>{};//replaced by the database
         private readonly IMapper _mapper;
 
         public TransactionService(IMapper mapper)
@@ -30,7 +30,8 @@ namespace GitMunnyApi.Services.TransactionService
             foreach (var transaction in transactions)
             {
                 var current = _mapper.Map<TransactionModel>(transaction);
-                if (Transactions.Contains(current))
+                var other = Transactions.FirstOrDefault(e => e.Id.Equals(current.Id));
+                if (other is not null)
                 {
                     ((List<TransactionDto>)serviceResponse.Data).Add(transaction);
                     continue;
@@ -43,10 +44,10 @@ namespace GitMunnyApi.Services.TransactionService
             return serviceResponse;     
         } 
 
-        public async Task<ServiceResponse<TransactionDto>> UpdateTransaction(TransactionDto updatedTransaction)
+        public async Task<ServiceResponse<TransactionDto>> UpdateTransaction(Guid id, TransactionDto updatedTransaction)
         {
             var serviceResponse = new ServiceResponse<TransactionDto>();
-            var transaction = Transactions.FirstOrDefault(x => x.Id.Equals(updatedTransaction.Id));
+            var transaction = Transactions.FirstOrDefault(x => x.Id.Equals(id));
             if (transaction is null)
             {
                 serviceResponse.Success = false;

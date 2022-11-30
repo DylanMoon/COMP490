@@ -73,6 +73,10 @@ namespace GitMunnyApi.Models
             Tags = other.Tags;
             Deleted = other.Deleted;
         }
-        
+
+        public override string ToString()
+        {
+            return $"[Transaction {Id.ToString()}]";
+        }
     }
 }

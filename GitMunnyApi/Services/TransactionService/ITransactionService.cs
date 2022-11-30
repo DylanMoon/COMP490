@@ -7,7 +7,7 @@ namespace GitMunnyApi.Services.TransactionService
     {
         Task<ServiceResponse<IEnumerable<TransactionDto>>> GetTransaction(IEnumerable<IApiFilter<TransactionModel>> filters);
         Task<ServiceResponse<IEnumerable<TransactionDto>>> AddTransactions(IEnumerable<TransactionDto> transactions);
-        Task<ServiceResponse<TransactionDto>> UpdateTransaction(TransactionDto updatedTransaction);
+        Task<ServiceResponse<TransactionDto>> UpdateTransaction(Guid id, TransactionDto updatedTransaction);
 
         Task<ServiceResponse<IEnumerable<TransactionDto>>> DeleteTransactions(IEnumerable<TransactionDto> transactions);
 

@@ -62,7 +62,7 @@ namespace GitMunnyApi.Controllers
             [FromRoute] Guid id,
             [FromBody]TransactionDto updatedTransaction)
         {
-            var response = await _transactionService.UpdateTransaction(updatedTransaction);
+            var response = await _transactionService.UpdateTransaction(id, updatedTransaction);
             if (response.Success is false) return NotFound(response);
             return Ok(response);
         }
