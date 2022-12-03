@@ -5,6 +5,7 @@ namespace GitMunnyApi.Models
     public sealed class TransactionModel
     {
         public Guid Id { get; init; }
+        public string? Item {get;set;}
         public DateTime Date { get; set; }
         public double? Amount { get; set;}
         public TransactionType? Type { get; set; } 
