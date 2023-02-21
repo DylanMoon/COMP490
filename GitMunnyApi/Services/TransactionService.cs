@@ -1,10 +1,11 @@
 using AutoMapper;
+using GitMunnyApi.Controllers;
 using GitMunnyApi.Dtos.Transactions;
 using GitMunnyApi.Filters;
 
-namespace GitMunnyApi.Services.TransactionService
+namespace GitMunnyApi.Services
 {
-    public class TransactionService : ITransactionService
+    public class TransactionService : ICrudEndpoints<TransactionModel>
     {
         private static List<TransactionModel> Transactions { get; set; } = new List<TransactionModel>{};//replaced by the database
         private readonly IMapper _mapper;
@@ -79,6 +80,31 @@ namespace GitMunnyApi.Services.TransactionService
             serviceResponse.Success = ((List<TransactionDto>) serviceResponse.Data).Count == 0;
             if (!serviceResponse.Success) serviceResponse.Message = "Unable to delete all transactions";
             return serviceResponse;
+        }
+
+        public async Task<TransactionModel?> Create(TransactionModel newEntity)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<TransactionModel?> GetById(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<ICollection<TransactionModel?>> GetAll(IEnumerable<IApiFilter<TransactionModel>> filters)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<TransactionModel?> Update(Guid id, TransactionModel updatedEntity)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<TransactionModel?> Delete(Guid id, bool permanent)
+        {
+            throw new NotImplementedException();
         }
     }
 }

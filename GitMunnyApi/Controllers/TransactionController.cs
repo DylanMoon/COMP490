@@ -1,8 +1,8 @@
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using GitMunnyApi.Dtos.Transactions;
 using GitMunnyApi.Filters;
 using GitMunnyApi.Filters.TransactionFilters;
-using GitMunnyApi.Services.TransactionService;
 
 namespace GitMunnyApi.Controllers
 {
@@ -10,11 +10,15 @@ namespace GitMunnyApi.Controllers
     [Route("api/[controller]")]
     public class TransactionController : ControllerBase
     {
-        private readonly ITransactionService _transactionService;
+        private readonly ICrudEndpoints<TransactionModel> _transactionService;
+        private readonly Mapper _mapper;
+        
+        //TODO: use Mediator!
 
-        public TransactionController(ITransactionService transactionService)
+        public TransactionController(ICrudEndpoints<TransactionModel> transactionService, Mapper mapper)
         {
             _transactionService = transactionService;
+            _mapper = mapper;
         }
         
         [HttpGet]
@@ -39,22 +43,21 @@ namespace GitMunnyApi.Controllers
             if (vendor is not null) filters.Add(new TransactionFromVendor(vendor));
             if(tags is not null) filters.Add(new TransactionIncludesTags(tags));
             if(deleted is null or false) filters.Add(new TransactionNotDeleted());
-            return Ok(await _transactionService.GetTransaction(filters));
+            return Ok(await _transactionService.GetAll(filters));
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<ServiceResponse<IEnumerable<TransactionDto>>>> GetById([FromRoute] Guid id)
         {
-            return Ok(await _transactionService.GetTransaction(new List<IApiFilter<TransactionModel>>(){new TransactionNotDeleted(), new TransactionHasId(id)}));
+            return Ok(await _transactionService.GetById(id));
         }
 
         [HttpPost]
-        public async Task<ActionResult<ServiceResponse<IEnumerable<TransactionDto>>>> AddTransaction(
-            [FromBody] IEnumerable<TransactionDto> newTransactions)
+        public async Task<ActionResult<ServiceResponse<TransactionDto>>> CreateTransaction(
+            [FromBody] TransactionDto newTransaction)
         {
-            var response = await _transactionService.AddTransactions(newTransactions);
-            if (response.Success is false) return UnprocessableEntity(response);
-            return Ok(response);
+            var response = await _transactionService.Create(_mapper.Map<TransactionModel>(newTransaction));
+            return response is not null ? Ok(_mapper.Map<TransactionDto>(response)) : UnprocessableEntity(newTransaction);
         }
 
         [HttpPut("{id}")]
@@ -62,18 +65,16 @@ namespace GitMunnyApi.Controllers
             [FromRoute] Guid id,
             [FromBody]TransactionDto updatedTransaction)
         {
-            var response = await _transactionService.UpdateTransaction(id, updatedTransaction);
-            if (response.Success is false) return NotFound(response);
-            return Ok(response);
+            var response = await _transactionService.Update(id, _mapper.Map<TransactionModel>(updatedTransaction));
+            return response is not null ? Ok(_mapper.Map<TransactionDto>(response)) : NotFound();
         }
 
-        [HttpDelete]
-        public async Task<ActionResult<ServiceResponse<IEnumerable<TransactionDto>>>> DeleteTransactions(
-            [FromBody] IEnumerable<TransactionDto>transactionsToBeDeleted)
+        [HttpDelete("{id:guid}")]
+        public async Task<ActionResult<ServiceResponse<TransactionDto>>> DeleteTransactions(
+            [FromRoute] Guid id, [FromQuery] bool permanent)
         {
-            var response = await _transactionService.DeleteTransactions(transactionsToBeDeleted);
-            if (response.Success is false) return NotFound(response);
-            return Ok(response); 
+            var response = await _transactionService.Delete(id, permanent);
+            return response is not null ? Ok(_mapper.Map<TransactionDto>(response)) : NotFound();
         }
 
     }
